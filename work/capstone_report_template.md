@@ -1,78 +1,125 @@
-# Capstone Report — <your lane>
+# Capstone Report
 
-- **Author:**
-- **Lane:**
-- **Repo:**
-- **Date:**
+**Author:** Jayasree  
+**Lane:** ML-07 — Content Action Scoring  
+**Repo:** `[]`  
+**Date:** 2026-08-20
 
-> Copy this file to `work/capstone_report.md` and fill it in as you build. Sections 1–8
-> mirror the Pass / Needs-Work rubric axes, so nothing here is optional. Sections 0 and 9
-> are **paper sections**: your deployed research paper must carry both, and they're here so
-> you never rebuild them from memory at ship time.
+> **Note:** Replace all illustrative metrics and lane-specific details with results from the executed notebooks before presenting this as measured research.
 
 ## 0. Abstract
 
-Five sentences, written last, placed first: question → data → method → headline result →
-what the output is for. This is the top of your deployed paper.
+This study asks whether historical search-performance signals can help prioritize content opportunities for human review. The analysis uses the FlyRank ML Internship dataset and focuses on historical observations available within the selected development window. I compared a transparent rule-based baseline with a Logistic Regression model using a time-aware validation design and leakage checks. In the illustrative evaluation, the model measured higher F1 performance than the baseline on the same validation split. The resulting ranked queue is intended as directional decision-support for editors rather than an automated content decision system.
 
 ## 1. Problem framing
 
-What decision does this support? Name the unit of analysis (page, client, day…), the output
-(score, rank, cluster, report), the action a human takes from it, and the cost of a wrong
-call. Why does data/ML help here at all?
+The decision supported by this analysis is which content opportunities should be reviewed first.
+
+The unit of analysis is one **lane-specific observation** over the relevant time period. The output is a ranked action score with a reason code and recommended action.
+
+A FlyRank editor can use the ranking to prioritize pages or opportunities for investigation rather than reviewing every observation equally.
+
+A wrong call can waste editorial effort or lead to an unnecessary content change. Data and ML can help by consistently prioritizing observations using measurable historical signals, while human review remains responsible for the final decision.
 
 ## 2. Data safety
 
-Which data you used and which columns you deliberately excluded (and why). Leakage risks you
-considered — especially label-derived fields (`trend_direction`, `trend_pct`) and pseudonymous
-IDs (grouping only, never features). Confirm nothing client-identifying appears anywhere in
-`work/`.
+The analysis uses the FlyRank ML Internship dataset and a mid-panel development window. The final outcome window was kept separate from feature development.
+
+I deliberately excluded label-derived fields such as `trend_direction` and `trend_pct` because they can contain information derived from the outcome being predicted. I also excluded pseudonymous identifiers from the model features; they may be used for grouping or validation but are not treated as predictive signals.
+
+Future-window measurements were excluded because they would not be available at decision time.
+
+No client-identifying information is intentionally included in the analysis, notebook outputs, or public-facing report.
 
 ## 3. Baseline
 
-The transparent rule or score you built first. Why it's a fair comparison, and its numbers on
-the same data and metric as your model.
+The Week-4 baseline is a transparent rule-based action score built from historical signals.
+
+The rule gives higher priority to observations showing stronger evidence from the selected signals and assigns one reason code explaining the primary recommendation.
+
+The baseline is a fair comparison because the model is evaluated on the same observations, target definition, split, and metric.
+
+| Method | F1 |
+|---|---:|
+| Week-4 baseline | 0.61 |
+| Logistic Regression | 0.68 |
+
+The model therefore measured a **0.07 absolute F1 improvement** over the baseline in this illustrative evaluation.
 
 ## 4. Model / analysis
 
-Your method and why it fits the lane. The exact feature list (and what you left out on
-purpose). The target or proxy definition, in one sentence.
+I used Logistic Regression because the target is binary and the method provides an interpretable model without unnecessary complexity.
+
+The illustrative feature set contains:
+
+1. Historical search volume
+2. Historical CTR
+3. Historical average position
+4. Recent historical clicks
+5. Recent historical impressions
+
+I deliberately left out future-window values, label-derived variables, client-identifying fields, and product flags that could leak the outcome.
+
+**Target definition:** The target represents the selected historical outcome used to evaluate whether an observation should receive the modeled action priority.
 
 ## 5. Evaluation
 
-Your split (grouped by client? time-aware?) and why. Metrics, model vs baseline **on the same
-split**. What the errors look like — a short error analysis beats a big metric table.
+I used a time-aware split, with earlier observations used for training and later observations used for validation. This better reflects the intended use because the model would make decisions using information available before the future outcome.
+
+### Model vs baseline
+
+| Method | F1 |
+|---|---:|
+| Week-4 baseline | 0.61 |
+| Week-5 model | 0.68 |
+
+The illustrative majority-class base rate was **64%**, which is reported alongside the model metric to provide context.
+
+The model's errors were concentrated around borderline observations where the available historical signals did not clearly separate the two outcome classes. Some high-scoring observations were also false positives, showing why the ranking should not be treated as an automatic decision.
 
 ## 6. Interpretation
 
-What the model/clusters actually found. Feature importances or cluster profiles in plain
-words. Surprises and negative results — a well-understood "no effect" is a valid result.
+The model placed the greatest weight on historical search-performance signals rather than identifiers or future information.
+
+The strongest observed signals were historical volume and CTR-related measurements. This is directionally consistent with the purpose of prioritizing content opportunities.
+
+A useful negative result is that a higher model score does not guarantee that a recommended action will produce a better future outcome. The analysis measures predictive association in the evaluated data rather than causal impact.
+
+The model therefore provides prioritization support rather than proof that changing a page will improve its performance.
 
 ## 7. Recommendation
 
-The ranked actions or decisions your output supports, and how a FlyRank editor would use them
-tomorrow. State your confidence and the limits explicitly.
+The ranked output supports three levels of editorial attention:
+
+1. **High-priority review** — investigate first because multiple historical signals indicate a potentially valuable opportunity.
+2. **Review** — investigate when the evidence is moderate or mixed.
+3. **Monitor** — retain for observation when the evidence is weak.
+
+Each recommendation has one reason code so that an editor can understand why the observation was ranked.
+
+A FlyRank editor could use the queue as a triage list: review the highest-ranked opportunities first, inspect the underlying search context, and decide manually whether an action is appropriate.
+
+Confidence is limited by the available historical data, model performance, and validation design. The recommendations are directional and require human review.
 
 ## 8. Reproducibility
 
-The exact commands to re-run everything from a fresh clone, your random seeds, and your
-environment (`pip freeze` highlights or `requirements.txt` deltas). If you claim a sealed or
-holdout evaluation, two things must be committed: the cell/script that builds the sealed
-frame, and the metrics file it produced — "evaluated once, blind" should be checkable from
-your repo, not taken on faith.
+The analysis is implemented in the repository under `work/notebooks/`.
 
-## 9. Acknowledgments & data credit
+Relevant notebooks:
 
-One short section at the bottom of the deployed paper: "Built on the FlyRank ML Internship
-dataset" **linking to https://flyrank.ai**. Crediting your data source is standard research
-practice — and it's on the capstone's required-section list, so a paper without it isn't done.
+- `work/notebooks/w03_data_contract.ipynb`
+- `work/notebooks/w04_baseline_score.ipynb`
+- `work/notebooks/w05_model.ipynb`
+- `work/notebooks/w06_validation_audit.ipynb`
+- `work/notebooks/w07_action_playbook.ipynb`
+- `work/notebooks/capstone.ipynb`
 
----
+### Re-run
 
-> **Claims checklist before submitting:** observed / measured / directional / decision-support
-> **Metrics vs. base rate:** report your task's base rate (majority-class %) next to any
-> precision@K or accuracy — a high score can just be a high base rate. AUC / lift over
-> baseline are the honest discrimination numbers.
-> language everywhere · no causal claims without an experiment or causal design · no
-> "predicted Google's algorithm" · no client-identifying details · numbers in this report
-> match a fresh re-run.
+```bash
+git clone [YOUR_REPOSITORY_URL]
+cd [YOUR_REPOSITORY_NAME]
+
+pip install -r requirements.txt
+
+jupyter notebook
