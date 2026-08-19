@@ -2,7 +2,7 @@
 
 **Author:** Jayasree  
 **Lane:** ML-07 — Content Action Scoring  
-**Repo:** `[]`  
+**Repo:** `[https://github.com/jayasreesundarasekar/flyrank-machine-learning-internship-starter-]`  
 **Date:** 2026-08-20
 
 > **Note:** Replace all illustrative metrics and lane-specific details with results from the executed notebooks before presenting this as measured research.
@@ -117,8 +117,8 @@ Relevant notebooks:
 ### Re-run
 
 ```bash
-git clone [YOUR_REPOSITORY_URL]
-cd [YOUR_REPOSITORY_NAME]
+git clone [https://github.com/jayasreesundarasekar/flyrank-machine-learning-internship-starter-]
+cd [flyrank-machine-learning-internship-starter-]
 
 pip install -r requirements.txt
 
